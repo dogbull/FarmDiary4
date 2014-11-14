@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1" />
+	<script src="js/cropAry.js"></script>
+	<script src="js/Utils.js"></script>
+	<script src="lib/jquery/1.11.1/jquery-1.11.1.min.js"></script>
+	<script src="lib/jquery/mobile/1.4.2/js/jquery.mobile-1.4.2.min.js"></script>
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.2/css/jquery.mobile-1.4.2.min.css"/>
+	<link rel="stylesheet" href="css/default.css">
+	<title>FarmDiary</title>
+</head>
+<body>
+<table id="mainTable">
+	<tr>
+		<td colspan="5" class="logoTD">
+			<img src="img/logo.png" class="logoImg">
+		</td>
+	</tr>
+<tr>
+	<th class="tabButton" id="tabButton1"><img src="img/icon/calendar.png" style="width:25px"><br/>영농달력</th>
+	<th class="tabButton" id="tabButton2"><img src="img/icon/list.png" style="width:25px"><br/>일지목록</th>
+	<th class="tabButton" id="tabButton3"><img src="img/icon/camera.png" style="width:25px"><br/>QR코드</th>
+	<th class="tabButton highlight" id="tabButton4"><img src="img/icon/crop.png" style="width:25px"><br/>재배정보</th>
+	<th class="tabButton" id="tabButton5"><img src="img/icon/setting.png" style="width:25px"><br/>환경설정</th>
+</tr>
+<tr>
+<td id="contentsTD" colspan="5">
+	<div>
+		<div class="card">
+			<div>
+				<span id="cropName" style="font-size: 40px;"></span>
+			</div>
+			<div>
+				<strong>학명</strong>: <span id="Scientific" style="font-size: 12px;"></span><br/>
+				<strong>한자</strong>: <span id="China" style="font-size: 12px;"></span><br/>
+				<strong>원산지</strong>: <span id="Habitat" style="font-size: 12px;"></span>
+			</div>
+		</div>
+		<div class="card">
+			<img id="cropImg">
+		</div>
+		<div>
+			<div>
+				<div data-role="collapsible" data-collapsed-icon="arrow-d" data-expanded-icon="arrow-u">
+					<h4>특성 및 환경조건</h4>
+					<div id="Environment"></div>
+				</div>
+				<div data-role="collapsible" data-collapsed-icon="arrow-d" data-expanded-icon="arrow-u">
+					<h4>본밭 준비</h4>
+					<div id="Garden"></div>
+				</div>
+
+				<div data-role="collapsible" data-collapsed-icon="arrow-d" data-expanded-icon="arrow-u">
+					<h4>모종 아주심기</h4>
+					<div id="Seeding"></div>
+				</div>
+
+				<div data-role="collapsible" data-collapsed-icon="arrow-d" data-expanded-icon="arrow-u">
+					<h4>줄기유인 및 관리</h4>
+					<div id="Management"></div>
+				</div>
+
+				<div data-role="collapsible" data-collapsed-icon="arrow-d" data-expanded-icon="arrow-u">
+					<h4>수확 및 저장</h4>
+					<div id="Harvest"></div>
+				</div>
+
+				<div data-role="collapsible" data-collapsed-icon="arrow-d" data-expanded-icon="arrow-u">
+					<h4>영양소</h4>
+					<div id="Nutrient"></div>
+				</div>
+
+				<div data-role="collapsible" data-collapsed-icon="arrow-d" data-expanded-icon="arrow-u">
+					<h4>병충해 방제</h4>
+					<div id="Insect"></div>
+				</div>
+
+				<div data-role="collapsible" data-collapsed-icon="arrow-d" data-expanded-icon="arrow-u">
+					<h4>약이되는 채소 이야기</h4>
+					<div id="Story"></div>
+				</div>
+
+				<div data-role="collapsible" data-collapsed-icon="arrow-d" data-expanded-icon="arrow-u">
+					<h4>재배 포인트</h4>
+					<div id="Point"></div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+</td>
+</tr>
+</table>
+
+<script>
+	$(document).on("ready", function(){
+		var urlParams = Utils.getURLParams();
+
+			var crop = cropAry[urlParams.cropIndex];
+
+			$("#cropImg").attr("src", "/FarmDiary/res/img/crop/" + crop.Name + ".png");
+			$("#cropName").text(crop.Name);
+			$("#Scientific").text(crop.Scientific);
+			$("#China").text(crop.China);
+			$("#Habitat").text(crop.Habitat);
+
+
+			$("#Environment").html(crop.Environment);
+			$("#Garden").html(crop.Garden);
+			$("#Seeding").html(crop.Seeding);
+			$("#Management").html(crop.Management);
+			$("#Harvest").html(crop.Harvest);
+			$("#Nutrient").html(crop.Nutrient);
+			$("#Insect").html(crop.Insect);
+			$("#Story").html(crop.Story);
+			$("#Point").html(crop.Point);
+					
+
+
+		$("#tabButton1").click(function(e){
+			document.location.href = "page1.html";
+		});
+		$("#tabButton2").click(function(e){
+			document.location.href = "page2.html";
+		});
+		$("#tabButton3").click(function(e){
+			document.location.href = "page3.html";
+		});
+		$("#tabButton4").click(function(e){
+			document.location.href = "page4.html";
+		});
+		$("#tabButton5").click(function(e){
+			document.location.href = "page5.html";
+		});
+	})
+
+</script>
+</body>
+</html>

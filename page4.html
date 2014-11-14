@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1" />
+	<script src="js/cropAry.js"></script>
+	<script src="lib/jquery/1.11.1/jquery-1.11.1.min.js"></script>
+	<script src="lib/jquery/mobile/1.4.5/js/jquery.mobile-1.4.5.min.js"></script>
+
+	<title>FarmDiary</title>
+
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jhpark.min.css" />
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jquery.mobile.icons.min.css" />
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jquery.mobile.structure-1.4.5.min.css"/>
+	<link rel="stylesheet" href="css/default.css">
+</head>
+<body>
+
+<div data-role="page" data-theme="c">
+	<table id="mainTable">
+		<tr>
+			<td colspan="5" class="logoTD">
+				<img src="img/logo.png" class="logoImg">
+			</td>
+		</tr>
+	<tr>
+		<th class="tabButton" id="tabButton1"><img src="img/icon/calendar.png" style="width:25px"><br/>영농달력</th>
+		<th class="tabButton" id="tabButton2"><img src="img/icon/list.png" style="width:25px"><br/>일지목록</th>
+		<th class="tabButton" id="tabButton3"><img src="img/icon/camera.png" style="width:25px"><br/>QR코드</th>
+		<th class="tabButton highlight" id="tabButton4"><img src="img/icon/crop.png" style="width:25px"><br/>재배정보</th>
+		<th class="tabButton" id="tabButton5"><img src="img/icon/setting.png" style="width:25px"><br/>환경설정</th>
+	</tr>
+	<tr>
+	<td id="contentsTD" colspan="5">
+		<div style="display:table;margin:0 auto;">
+			<ul id="cropListView">
+
+			</ul>
+
+		</div>
+	</td>
+	</tr>
+	</table>
+
+	<div data-role="footer" data-position="fixed" data-tap-toggle="false">
+		<h3>Copyrightⓒ 경기도농업기술원 All rights reserved.</h3>
+	</div>
+</div>
+
+<script>
+	$(document).on("ready", function(){
+
+		var $cropListView = $("#cropListView");
+
+		for(var i=0; i<cropAry.length; ++i){
+			var crop = cropAry[i];
+			$cropListView.append(makeItem(i, crop.Name,crop.Name, crop.English));
+		}
+
+		function makeItem(index, imgName, cropName, detailText){
+			return '<a data-ajax="false" href="page4-1.html?cropIndex='+index+'"><li class="cropItem"><img src="/FarmDiary/res/img/crop/'+imgName+'.png"><p><span class="korName">'+cropName+'</span></br><span class="engName">'+detailText+'</span></p></li></a>';
+		}
+
+		$("#tabButton1").click(function(e){
+			document.location.href = "page1.html";
+		});
+		$("#tabButton2").click(function(e){
+			document.location.href = "page2.html";
+		});
+		$("#tabButton3").click(function(e){
+			document.location.href = "page3.html";
+		});
+		$("#tabButton4").click(function(e){
+			document.location.href = "page4.html";
+		});
+		$("#tabButton5").click(function(e){
+			document.location.href = "page5.html";
+		});
+
+
+	});
+</script>
+</body>
+</html>

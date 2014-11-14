@@ -1,0 +1,121 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1" />
+	<script src="js/FarmDiaryDatabase.js"></script>
+	<script src="lib/jquery/1.11.1/jquery-1.11.1.min.js"></script>
+	<script src="lib/jquery/mobile/1.4.5/js/jquery.mobile-1.4.5.min.js"></script>
+
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jhpark.min.css" />
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jquery.mobile.icons.min.css" />
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jquery.mobile.structure-1.4.5.min.css"/>
+
+	<title>FarmDiary</title>
+	<link rel="stylesheet" href="css/default.css">
+</head>
+<body>
+
+<div data-role="page" data-theme="c">
+
+<table id="mainTable">
+<tr>
+	<td colspan="5" class="logoTD">
+		<img src="img/logo.png" class="logoImg">
+	</td>
+</tr>
+<tr>
+	<th class="tabButton" id="tabButton1"><img src="img/icon/calendar.png" style="width:25px"><br/>영농달력</th>
+	<th class="tabButton" id="tabButton2"><img src="img/icon/list.png" style="width:25px"><br/>일지목록</th>
+	<th class="tabButton" id="tabButton3"><img src="img/icon/camera.png" style="width:25px"><br/>QR코드</th>
+	<th class="tabButton" id="tabButton4"><img src="img/icon/crop.png" style="width:25px"><br/>재배정보</th>
+	<th class="tabButton highlight" id="tabButton5"><img src="img/icon/setting.png" style="width:25px"><br/>환경설정</th>
+</tr>
+<tr>
+<td id="contentsTD" colspan="5">
+
+	<div class="ui-corner-all custom-corners" data-theme="c" style="margin:10px 0 20px 0;">
+		<div class="ui-bar ui-bar-c">
+			<h3>일지 관리</h3>
+		</div>
+		<div class="ui-body ui-body-c">
+			<button data-mini="true" id="clearDiaryDB">모든 일지 삭제</button>
+		</div>
+	</div>
+
+	<div  id="imgBtnGG" class="card" style="margin-bottom: 20px;text-align: center;">
+		<img src="./img/gg.logo.gif" style="width:150px;">
+	</div>
+</td>
+</tr>
+</table>
+
+	<div data-role="footer" data-position="fixed">
+		<h3>Copyrightⓒ 경기도농업기술원 All rights reserved.</h3>
+	</div>
+</div>
+<script>
+	$(document).on("ready", function(){
+
+		$("#clearDiaryDB").click(function(e){
+			e.preventDefault();
+			if( confirm("모든 일지를 삭제할까요?") ){
+				if( confirm("삭제된 일지는 복구가 불가능합니다.\n삭제를 계속 진행할까요?") ){
+					FarmDiaryDatabase.clearDatabase(function(status, result){
+						if( status==="success" ){
+							var msg = "모든 일지가 삭제되었습니다.";
+							alert(msg);
+						}else{
+							alert("삭제 중 오류가 발생했습니다.")
+						}
+					});
+				}
+			}
+		});
+
+		$("#imgBtnGG").click(function(e){
+			e.preventDefault();
+			if( navigator && navigator.app ){
+				navigator.app.loadUrl("http://nongup.gg.go.kr/", {openExternal : true});
+			}else{
+				//window.open("http://nongup.gg.go.kr/", "_system");
+			}
+		})
+
+		$("#tabButton1").click(function(e){
+			document.location.href = "page1.html";
+		});
+		$("#tabButton2").click(function(e){
+			document.location.href = "page2.html";
+		});
+		$("#tabButton3").click(function(e){
+			document.location.href = "page3.html";
+		});
+		$("#tabButton4").click(function(e){
+			document.location.href = "page4.html";
+		});
+		$("#tabButton5").click(function(e){
+			document.location.href = "page5.html";
+		});
+	});
+
+
+
+	function init() {
+		var cordovaScript = document.createElement("script");
+		document.head.appendChild(cordovaScript);
+		cordovaScript.onload = function(){
+
+		}
+		if( navigator.userAgent.indexOf("Android")>0 ){
+			cordovaScript.src = "js/phonegap/android/cordova.js";
+		}else if( navigator.userAgent.indexOf("iPhone") > 0 || navigator.userAgent.indexOf("iPad") > 0 || navigator.userAgent.indexOf("iPod") > 0 ){
+			cordovaScript.src = "js/phonegap/android/cordova.js";
+		}
+	}
+
+	init();
+
+</script>
+</body>
+</html>

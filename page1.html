@@ -1,0 +1,416 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"/>
+
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jhpark.min.css"/>
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jquery.mobile.icons.min.css"/>
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jquery.mobile.structure-1.4.5.min.css"/>
+	<link rel="stylesheet" href="css/default.css">
+
+	<script src="js/Utils.js"></script>
+	<script src="js/cropAry.js"></script>
+	<script src="js/FarmDiaryDatabase.js"></script>
+	<script src="lib/jquery/1.11.1/jquery-1.11.1.min.js"></script>
+	<script src="lib/jquery/plugins/jquery-tmpl.js"></script>
+	<script src="lib/jquery/mobile/1.4.5/js/jquery.mobile-1.4.5.min.js"></script>
+
+	<title>FarmDiary</title>
+</head>
+<body>
+<div data-role="page" data-theme="c">
+	<div data-role="main">
+		<table id="mainTable">
+			<tr>
+				<td colspan="5" class="logoTD">
+					<img src="img/logo.png" class="logoImg">
+				</td>
+			</tr>
+			<tr>
+				<th class="tabButton highlight" id="tabButton1"><img src="img/icon/calendar.png" style="width:25px"><br/>영농달력</th>
+				<th class="tabButton" id="tabButton2"><img src="img/icon/list.png" style="width:25px"><br/>일지목록</th>
+				<th class="tabButton" id="tabButton3"><img src="img/icon/camera.png" style="width:25px"><br/>QR코드</th>
+				<th class="tabButton" id="tabButton4"><img src="img/icon/crop.png" style="width:25px"><br/>재배정보</th>
+				<th class="tabButton" id="tabButton5"><img src="img/icon/setting.png" style="width:25px"><br/>환경설정</th>
+			</tr>
+		</table>
+
+		<select id="selectCrop" data-mini="true">
+			<option value="-2">전체 작목</option>
+		</select>
+
+		<table id="jrr_calendar">
+			<thead>
+			<tr>
+				<th id="prevYear" class="ctrl">
+					&lt;&lt;
+				</th>
+				<th id="prevMonth" class="ctrl">
+					&lt;
+				</th>
+				<th colspan="4" id="ymCell" class="ctrl">
+					<select id="selectYM" data-role="none"></select>
+				</th>
+				<th id="nextMonth" class="ctrl">
+					&gt;
+				</th>
+				<th id="nextYear" class="ctrl">
+					&gt;&gt;
+				</th>
+			</tr>
+			<tr>
+				<th class="jrr_week header">주차</th>
+				<th class="jrr_sunday header">일</th>
+				<th class="jrr_monday header">월</th>
+				<th class="jrr_tuesday header">화</th>
+				<th class="jrr_wednesday header">수</th>
+				<th class="jrr_thursday header">목</th>
+				<th class="jrr_friday header">금</th>
+				<th class="jrr_saturday header">토</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr>
+				<td class="jrr_week" id="w0"></td>
+				<td class="dayCell jrr_sunday" id="c00"></td>
+				<td class="dayCell jrr_monday" id="c10"></td>
+				<td class="dayCell jrr_tuesday" id="c20"></td>
+				<td class="dayCell jrr_wednesday" id="c30"></td>
+				<td class="dayCell jrr_thursday" id="c40"></td>
+				<td class="dayCell jrr_friday" id="c50"></td>
+				<td class="dayCell jrr_saturday" id="c60"></td>
+			</tr>
+			<tr>
+				<td class="jrr_week" id="w1"></td>
+				<td class="dayCell jrr_sunday" id="c01"></td>
+				<td class="dayCell jrr_monday" id="c11"></td>
+				<td class="dayCell jrr_tuesday" id="c21"></td>
+				<td class="dayCell jrr_wednesday" id="c31"></td>
+				<td class="dayCell jrr_thursday" id="c41"></td>
+				<td class="dayCell jrr_friday" id="c51"></td>
+				<td class="dayCell jrr_saturday" id="c61"></td>
+			</tr>
+			<tr>
+				<td class="jrr_week" id="w2"></td>
+				<td class="dayCell jrr_sunday" id="c02"></td>
+				<td class="dayCell jrr_monday" id="c12"></td>
+				<td class="dayCell jrr_tuesday" id="c22"></td>
+				<td class="dayCell jrr_wednesday" id="c32"></td>
+				<td class="dayCell jrr_thursday" id="c42"></td>
+				<td class="dayCell jrr_friday" id="c52"></td>
+				<td class="dayCell jrr_saturday" id="c62"></td>
+			</tr>
+			<tr>
+				<td class="jrr_week" id="w3"></td>
+				<td class="dayCell jrr_sunday" id="c03"></td>
+				<td class="dayCell jrr_monday" id="c13"></td>
+				<td class="dayCell jrr_tuesday" id="c23"></td>
+				<td class="dayCell jrr_wednesday" id="c33"></td>
+				<td class="dayCell jrr_thursday" id="c43"></td>
+				<td class="dayCell jrr_friday" id="c53"></td>
+				<td class="dayCell jrr_saturday" id="c63"></td>
+			</tr>
+			<tr>
+				<td class="jrr_week" id="w4"></td>
+				<td class="dayCell jrr_sunday" id="c04"></td>
+				<td class="dayCell jrr_monday" id="c14"></td>
+				<td class="dayCell jrr_tuesday" id="c24"></td>
+				<td class="dayCell jrr_wednesday" id="c34"></td>
+				<td class="dayCell jrr_thursday" id="c44"></td>
+				<td class="dayCell jrr_friday" id="c54"></td>
+				<td class="dayCell jrr_saturday" id="c64"></td>
+			</tr>
+			<tr>
+				<td class="jrr_week" id="w5"></td>
+				<td class="dayCell jrr_sunday" id="c05"></td>
+				<td class="dayCell jrr_monday" id="c15"></td>
+				<td class="dayCell jrr_tuesday" id="c25"></td>
+				<td class="dayCell jrr_wednesday" id="c35"></td>
+				<td class="dayCell jrr_thursday" id="c45"></td>
+				<td class="dayCell jrr_friday" id="c55"></td>
+				<td class="dayCell jrr_saturday" id="c65"></td>
+			</tr>
+			</tbody>
+
+
+		</table>
+	</div>
+	<div data-role="footer" data-position="fixed">
+		<h3>Copyrightⓒ 경기도농업기술원 All rights reserved.</h3>
+	</div>
+</div>
+<script>
+$(document).on("ready", function () {
+	function runApp() {
+		FarmDiaryDatabase.initialize();
+
+		var urlParams = Utils.getURLParams();
+
+		const $ymCell = $("#ymCell", self.$el);
+		const $selectYM = $("#selectYM", self.$el);
+		const $prevYear = $("#prevYear", self.$el);
+		const $nextYear = $("#nextYear", self.$el);
+		const $prevMonth = $("#prevMonth", self.$el);
+		const $nextMonth = $("#nextMonth", self.$el);
+		const today = new Date();
+		var selectedDate = null;
+		var prevSelectedDate = null;
+
+
+		if (urlParams.y && urlParams.m) {
+			selectedDate = new Date(urlParams.y, urlParams.m);
+		} else {
+			selectedDate = new Date();
+		}
+
+		setDate(selectedDate);
+
+		function changeCalendar(date) {
+			document.location.href = "page1.html?" +
+					"y=" + date.getFullYear() +
+					"&m=" + date.getMonth() +
+					"&oldCropVal=" + $("#selectCrop").val();
+		}
+
+		$prevYear.bind("mousedown", function (e) {
+			e.preventDefault();
+			selectedDate.setFullYear(selectedDate.getFullYear() - 1);
+
+			changeCalendar(selectedDate);
+		})
+
+		$nextYear.bind("mousedown", function (e) {
+			e.preventDefault();
+
+			selectedDate.setFullYear(selectedDate.getFullYear() + 1);
+			changeCalendar(selectedDate);
+		})
+
+		$prevMonth.bind("mousedown", function (e) {
+			e.preventDefault();
+
+			selectedDate.setMonth(selectedDate.getMonth() - 1);
+			changeCalendar(selectedDate);
+		});
+
+		$nextMonth.bind("mousedown", function (e) {
+			e.preventDefault();
+
+			selectedDate.setMonth(selectedDate.getMonth() + 1);
+			changeCalendar(selectedDate);
+		});
+
+		$selectYM.bind("change", function (e) {
+			e.preventDefault();
+
+			var yearMonth = getYM();
+
+			selectedDate.setFullYear(yearMonth.year);
+			selectedDate.setMonth(yearMonth.month);
+
+			changeCalendar(selectedDate);
+		});
+
+		$(".dayCell", self.$el).bind("mousedown", function (e) {
+			e.preventDefault();
+
+			var yearMonth = getYM();
+			var y = yearMonth.year;					//선택된 셀의 년
+			var m = yearMonth.month;				//선택된 셀의 월
+			var d = parseInt($(this).text());		//선택된 셀의 일
+
+			if (!$(this).hasClass("currentMonth")) {
+				if (d > 15) {
+					m--;
+				} else {
+					m++;
+				}
+			}
+
+			var param = "y=" + y + "&m=" + m + "&d=" + d;
+
+			document.location.href = "page1-1.html?" + param;
+		});
+
+		$("#selectCrop").change(function (e) {
+			e.preventDefault();
+
+			setDate(selectedDate);
+		});
+
+		function setDate(date) {
+			selectedDate = new Date(date);
+
+			FarmDiaryDatabase.getCropIndicies(selectedDate.getFullYear(), selectedDate.getMonth(), function (status, result) {
+				switch (status) {
+					case "success":
+						var cData = [];
+						var oldCropVal = $("#selectCrop").val();
+						if (oldCropVal == -2) {
+							oldCropVal = urlParams.oldCropVal;
+						}
+						$("#selectCrop").empty();
+						$("#selectCrop").append('<option value="-1">전체 작목</option>');
+						for (var i = 0; i < result.rows.length; ++i) {
+							var row = result.rows.item(i);
+							console.log(row);
+
+							var cropIndex = row["cropIndex"];
+							if (cropIndex != -1) {
+								$("#selectCrop").append('<option value="' + cropIndex + '" ' + (cropIndex == oldCropVal ? "selected" : "") + '>' + cropAry[cropIndex].Name + '</option>')
+							}
+						}
+						$("#selectCrop").selectmenu("refresh");
+						drawCalendar(cData);
+						break;
+					case "error":
+						break;
+				}
+			});
+
+			var cropIndex = $("#selectCrop").val();
+			if (cropIndex == -2 && typeof urlParams.oldCropVal !== "undefined") {
+				cropIndex = urlParams.oldCropVal;
+			}
+			FarmDiaryDatabase.getBufferedDiaryByYearMonth(selectedDate.getFullYear(), selectedDate.getMonth(), cropIndex, function (status, result) {
+				switch (status) {
+					case "success":
+						var cData = [];
+						for (var i = 0; i < result.rows.length; ++i) {
+							var row = result.rows.item(i);
+							cData[row.date] = row;
+							cData[row.nextDate1] = row;
+							cData[row.nextDate2] = row;
+
+							if( row ){
+								var t = new Date();
+								t.setTime(row.nextDate2);
+								console.log(t);
+							}
+						}
+						//console.log(result.rows);
+						console.log(cData);
+						//console.log(cData.)
+						drawCalendar(cData);
+						break;
+					case "error":
+						break;
+				}
+			});
+
+			drawCalendar(null);
+
+			function drawCalendar(cData) {
+				const year = selectedDate.getFullYear();
+				const month = selectedDate.getMonth();
+
+				//$ymCell.text(year + "년 " + (month+1) + "월");
+
+				var startDay = new Date(year, month, 1).getDay();
+				var cellPadding = startDay == 0 ? 7 : startDay;
+
+				for (var i = 0; i < 6; ++i) {
+					var $week = $("#w" + i, self.$el);
+					var d = i * 7 + 1 - cellPadding;
+					if (month == 0 && cellPadding != 7) {
+						d = i * 7 + 1;
+					}
+
+					$week.text(weekInYear(year, month, d));
+
+					for (var j = 0; j < 7; ++j) {
+						var cell = $("#c" + j + i, self.$el);
+						cell.removeClass("currentMonth");
+						cell.removeClass("otherMonth");
+						var date = new Date(year, month, (i * 7 + j + 1) - cellPadding);
+						if (date.getMonth() == month) {
+							cell.addClass("currentMonth");
+						} else {
+							cell.addClass("otherMonth");
+						}
+						cell.text(date.getDate());
+
+						if (cData && cData[date.getTime()]) {
+							cell.addClass("hasDiary");
+						} else {
+							cell.removeClass("hasDiary");
+						}
+
+						if (date.getDate() == today.getDate() && date.getMonth() == today.getMonth() && date.getFullYear() == today.getFullYear()) {
+							cell.addClass("today");
+						} else {
+							cell.removeClass("today");
+						}
+					}
+				}
+
+				if (prevSelectedDate == null || (prevSelectedDate.getFullYear() != selectedDate.getFullYear())) {
+					$selectYM.empty();
+					$selectYM.append('<option value="">오늘</option>');
+					for (var y = selectedDate.getFullYear() - 1; y <= selectedDate.getFullYear() + 1; ++y) {
+						for (var m = 0; m < 12; ++m) {
+							$selectYM.append('<option value="' + y + '.' + m + '">' + y + '년 ' + (m + 1) + '월' + '</option>');
+						}
+					}
+				}
+
+				$selectYM.val(selectedDate.getFullYear() + "." + selectedDate.getMonth());
+
+				prevSelectedDate = new Date(selectedDate);
+			}
+		}
+
+		function getDaysInMonth(year, month) {
+			return new Date(year, month, 0).getDate();
+		}
+
+		function weekInYear(year, month, day) {
+			var date = new Date(year, month, day);
+			var onejan = new Date(date.getFullYear(), 0, 1);
+			return Math.ceil((((date - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+		}
+
+		function getYM() {
+			var token = $selectYM.val().split(".");
+			return {year: parseInt(token[0]), month: parseInt(token[1])}
+		}
+	}
+
+	runApp();
+});
+$("#tabButton1").click(function (e) {
+	document.location.href = "page1.html";
+});
+$("#tabButton2").click(function (e) {
+	document.location.href = "page2.html";
+});
+$("#tabButton3").click(function (e) {
+	document.location.href = "page3.html";
+});
+$("#tabButton4").click(function (e) {
+	document.location.href = "page4.html";
+});
+$("#tabButton5").click(function (e) {
+	document.location.href = "page5.html";
+});
+
+/*
+function init() {
+	var cordovaScript = document.createElement("script");
+	document.head.appendChild(cordovaScript);
+	cordovaScript.onload = function () {
+
+	}
+	if (navigator.userAgent.indexOf("Android") > 0) {
+		cordovaScript.src = "js/phonegap/android/cordova.js";
+	} else if (navigator.userAgent.indexOf("iPhone") > 0 || navigator.userAgent.indexOf("iPad") > 0 || navigator.userAgent.indexOf("iPod") > 0) {
+		cordovaScript.src = "js/phonegap/android/cordova.js";
+	}
+}
+
+init();
+*/
+</script>
+</body>
+</html>

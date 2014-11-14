@@ -1,0 +1,338 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1" />
+	<script src="js/cropAry.js"></script>
+	<script src="js/Utils.js"></script>
+	<script src="js/FarmDiaryDatabase.js"></script>
+	<script src="lib/jquery/1.11.1/jquery-1.11.1.min.js"></script>
+	<script src="lib/jquery/mobile/1.4.5/js/jquery.mobile-1.4.5.min.js"></script>
+	<script src="lib/jquery/plugins/jquery-tmpl.js"></script>
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jhpark.min.css" />
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jquery.mobile.icons.min.css" />
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jquery.mobile.structure-1.4.5.min.css"/>
+	<title>FarmDiary</title>
+	<link rel="stylesheet" href="css/default.css">
+</head>
+<body>
+<div data-role="page" data-theme="c">
+	<table id="mainTable">
+		<tr>
+			<td colspan="5" class="logoTD">
+				<img src="img/logo.png" class="logoImg">
+			</td>
+		</tr>
+		<tr>
+		<tr>
+			<th class="tabButton" id="tabButton1"><img src="img/icon/calendar.png" style="width:25px"><br/>영농달력</th>
+			<th class="tabButton" id="tabButton2"><img src="img/icon/list.png" style="width:25px"><br/>일지목록</th>
+			<th class="tabButton" id="tabButton3"><img src="img/icon/camera.png" style="width:25px"><br/>QR코드</th>
+			<th class="tabButton" id="tabButton4"><img src="img/icon/crop.png" style="width:25px"><br/>재배정보</th>
+			<th class="tabButton" id="tabButton5"><img src="img/icon/setting.png" style="width:25px"><br/>환경설정</th>
+		</tr>
+		<tr>
+			<td id="contentsTD" colspan="5">
+				<div class="card" style="text-align: center;margin-top:20px;">
+					<span id="date"></span>
+					<div id="newDiary">
+						<form>
+							<select id="selectCrop" data-mini="true">
+								<option>기타 작목</option>
+							</select>
+							<select id="selectAction" data-mini="true">
+								<option value="0">기타</option>
+								<option value="1">파종</option>
+								<option value="2">정식</option>
+								<option value="3">첫수확</option>
+							</select>
+							<input id="title" type="text" placeholder="제목을 입력해 주세요(필수)."/>
+							<textarea id="comment" rows="4" placeholder="내용을 입력해 주세요(선택)."></textarea>
+							<img id="img" style="width:100%;height:200px;border:1px solid #aaa;">
+
+							<fieldset class="ui-grid-a modifyModeItem">
+								<div class="ui-block-a" style="padding-right: 5px;"><button id="btnImg" data-mini="true" style="display:none;">새로운 사진 촬영</button></div>
+								<div class="ui-block-b" style="padding-left: 5px;"><button id="btnImgDel" data-mini="true" style="display:none;">사진 삭제</button></div>
+							</fieldset>
+
+
+							<div class="viewModeItem">
+								<button id="modify" data-mini="true" style="background-color:#ddd;">수정</button>
+							</div>
+							<fieldset class="ui-grid-a viewModeItem">
+								<div class="ui-block-a" style="padding-right: 5px;"><button id="confirm" data-mini="true" style="background-color:#efd;">닫기</button></div>
+								<div class="ui-block-b" style="padding-left: 5px;"><button id="delete" data-mini="true" style="background-color:#fde;">삭제</button></div>
+							</fieldset>
+							<fieldset class="ui-grid-a modifyModeItem" style="display:none;">
+								<div class="ui-block-a" style="padding-right: 5px;"><button id="modifyConfirm" data-mini="true" style="background-color:#efd;">확인</button></div>
+								<div class="ui-block-b" style="padding-left: 5px;"><button id="modifyCancel" data-mini="true" style="background-color:#fde;">취소</button></div>
+							</fieldset>
+						</form>
+					</div>
+				</div>
+
+				<div class="card" style="text-align: center;margin-top:20px;color:#999;">
+					작목과 영농 일정을 수정할 수 없습니다.<br/>
+					삭제시 연계된 영농 일정이 함께 삭제됩니다.
+				</div>
+			</td>
+		</tr>
+	</table>
+</div>
+<script>
+	var mode = "view";
+
+	var urlParams = null;
+
+	var current_item = null;
+
+	$(document).on("ready", function(){
+
+		urlParams = Utils.getURLParams();
+
+		FarmDiaryDatabase.initialize();
+
+		$("#tabButton" + urlParams.back_page.substr(4, 1)).addClass("highlight");
+
+		FarmDiaryDatabase.getDiaryById(urlParams.id, function(status, result){
+			if( status==="success" ){
+				current_item = result.rows.item(0)
+				setDiaryData(current_item);
+			}else{
+
+			}
+		});
+
+		var $selectCrop = $("#selectCrop");
+		$selectCrop.change(function(e){
+			e.preventDefault();
+			var iCrop = $("#selectCrop")[0].selectedIndex - 1;
+
+			var $selectAction = $("#selectAction");
+			if( iCrop==-1 ){
+				$("#selectAction").val(0);
+				$selectAction.prop("disabled", true)
+			}else{
+				var crop = cropAry[iCrop];
+				if( crop.month && crop.day1 && crop.day2 ){
+					$("#selectAction").prop("disabled", false);
+				}else{
+					$("#selectAction").val(0);
+					$("#selectAction").prop("disabled", true);
+				}
+			}
+
+			$("#selectAction").selectmenu('refresh', true);
+		})
+
+		function setDiaryData(data){
+			$(".viewModeItem").show();
+			$(".modifyModeItem").hide();
+
+			var urlParamDate = new Date(urlParams.y, urlParams.m, urlParams.d);
+			var writeDate = new Date(); writeDate.setTime(data["date"]);
+			var nextDate1 = new Date(); nextDate1.setTime(data["nextDate1"]);
+			var nextDate2 = new Date(); nextDate2.setTime(data["nextDate2"]);
+
+			$("#date").text(urlParamDate.getFullYear() + "년 " + (urlParamDate.getMonth()+1) + "월 " + urlParamDate.getDate() + "일");
+
+			var iAction = data["actionIndex"];
+			if( urlParamDate.getTime()==nextDate1.getTime() ){
+				iAction += 1;
+			}else if( urlParamDate.getTime()==nextDate2.getTime() ){
+				iAction += 2;
+			}
+
+			var $selectCrop = $("#selectCrop");
+			for(var i=0; i<cropAry.length; ++i){
+				var crop = cropAry[i];
+				$selectCrop.append('<option' + ((data["cropIndex"]==i)?' selected ':'') + '>' + crop.Name + '</option>')
+			}
+			$selectCrop.attr("disabled", true);
+			$selectCrop.selectmenu("refresh");
+
+			var $selectAction = $("#selectAction");
+			//$selectAction.val(data["actionIndex"]);
+			$selectAction.val(iAction);
+			$selectAction.attr("disabled", true);
+			$selectAction.selectmenu("refresh");
+
+			var $title = $("#title");
+			var $comment = $("#comment");
+
+			$title.attr("readonly", true);
+			$comment.attr("readonly", true);
+
+			$title.val(data["title"]);
+			$comment.text(data["comment"]);
+
+			var $img = $("#img");
+			if( data["img"]==="" ){
+				$img.hide();
+			}else{
+				$img.attr("src", data["img"]);
+			}
+		}
+
+		function goto_back(){
+			document.location.href = urlParams.back_page + "?" +
+					"&y=" + urlParams.y +
+					"&m=" + urlParams.m +
+					"&d=" + urlParams.d ;
+		}
+
+		$("#modifyCancel").click(function(e){
+			e.preventDefault();
+
+			setDiaryData(current_item);
+		})
+
+
+		$("#modifyConfirm").click(function(e){
+			e.preventDefault();
+
+			var iCrop = $("#selectCrop")[0].selectedIndex - 1;
+			var iAction = $("#selectAction")[0].selectedIndex;
+			var title = $("#title").val();
+			var comment = $("#comment").val();
+
+			if( title==="" ){
+				alert("제목은 반드시 입력해야합니다.");
+				return;
+			}
+
+			var imageData = $("#img").attr("src");
+			if( imageData===null || typeof imageData ==="undefined" ){
+				imageData = "";
+			}
+
+			var date = new Date();
+			date.setTime(current_item["date"]);
+
+			FarmDiaryDatabase.updateDiary(urlParams.id, date.getFullYear(), date.getMonth(), date.getDate(), iCrop, iAction, title, comment, imageData, function(status, result){
+				FarmDiaryDatabase.getDiaryById(urlParams.id, function(status, result){
+					if( status==="success" ){
+						current_item = result.rows.item(0)
+						setDiaryData(current_item);
+					}else{
+
+					}
+				});
+			});
+		});
+
+		$("#confirm").click(function(e){
+			e.preventDefault();
+			goto_back();
+		});
+
+		$("#delete").click(function(e){
+			e.preventDefault();
+			if( confirm("삭제하시겠습니까?") ){
+				FarmDiaryDatabase.deleteDiary(urlParams.id, function(status, result){
+					if( status==="success" ){
+
+					}else{
+						alert("삭제 실패!");
+					}
+					goto_back();
+				});
+			}
+		});
+
+		$("#modify").click(function(e){
+			e.preventDefault();
+
+			$(".viewModeItem").hide();
+			$(".modifyModeItem").show();
+
+			var $selectCrop = $("#selectCrop");
+			var $selectAction = $("#selectAction");
+			var $title = $("#title");
+			var $comment = $("#comment");
+			var $btnImg = $("#btnImg");
+			var $btnImgDel = $("#btnImgDel");
+			var $img = $("#img");
+
+			$selectCrop.attr("disabled", true);
+			$selectCrop.selectmenu("refresh");
+
+			$selectAction.attr("disabled", true);
+			$selectAction.selectmenu("refresh");
+
+			$title.attr("readonly", false);
+			$comment.attr("readonly", false);
+
+			if( current_item["img"]!="" ){
+
+				$img.show();
+				$btnImgDel.show();
+			}
+			$btnImg.show();
+		});
+
+
+		$("#btnImg").click(function(e){
+			e.preventDefault();
+
+			navigator.camera.getPicture(
+					function(imageData){
+						$("#img").show();
+						$("#btnImgDel").show();
+						$("#img").attr("src", "data:image/jpeg;base64," + imageData);
+					},function(message){
+					},{
+						quality: 30,
+						destinationType: Camera.DestinationType.DATA_URL
+						//destinationType: Camera.DestinationType.FILE_URI
+					}
+			)
+
+		});
+
+		$("#btnImgDel").click(function(e){
+			e.preventDefault();
+
+			if( confirm("사진을 삭제할까요?") ){
+				$("#img").attr("src", "");
+				$("#img").hide();
+				$("#btnImgDel").hide();
+			}
+		})
+	});
+
+
+	$("#tabButton1").click(function(e){
+		document.location.href = "page1.html";
+	});
+	$("#tabButton2").click(function(e){
+		document.location.href = "page2.html";
+	});
+	$("#tabButton3").click(function(e){
+		document.location.href = "page3.html";
+	});
+	$("#tabButton4").click(function(e){
+		document.location.href = "page4.html";
+	});
+	$("#tabButton5").click(function(e){
+		document.location.href = "page5.html";
+	});
+
+	function init() {
+		var cordovaScript = document.createElement("script");
+		document.head.appendChild(cordovaScript);
+		cordovaScript.onload = function(){
+
+		}
+		if( navigator.userAgent.indexOf("Android")>0 ){
+			cordovaScript.src = "js/phonegap/android/cordova.js";
+		}else if( navigator.userAgent.indexOf("iPhone") > 0 || navigator.userAgent.indexOf("iPad") > 0 || navigator.userAgent.indexOf("iPod") > 0 ){
+			cordovaScript.src = "js/phonegap/android/cordova.js";
+		}
+	}
+
+	init();
+
+</script>
+</body>
+</html>

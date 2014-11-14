@@ -1,0 +1,488 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1"/>
+
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jhpark.min.css"/>
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jquery.mobile.icons.min.css"/>
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jquery.mobile.structure-1.4.5.min.css"/>
+	<link rel="stylesheet" href="css/default.css">
+
+	<script src="js/cropAry.js"></script>
+	<script src="js/Utils.js"></script>
+	<script src="js/FarmDiaryDatabase.js"></script>
+	<script src="lib/jquery/1.11.1/jquery-1.11.1.min.js"></script>
+	<script src="lib/jquery/plugins/jquery-tmpl.js"></script>
+	<script src="lib/jquery/mobile/1.4.5/js/jquery.mobile-1.4.5.min.js"></script>
+
+	<title>FarmDiary</title>
+</head>
+<body>
+
+<div data-role="page" data-theme="c">
+	<div data-role="main">
+		<table id="mainTable">
+			<tr>
+				<td colspan="5" class="logoTD">
+					<img src="img/logo.png" class="logoImg">
+				</td>
+			</tr>
+			<tr>
+				<th class="tabButton highlight" id="tabButton1"><img src="img/icon/calendar.png" style="width:25px"><br/>영농달력
+				</th>
+				<th class="tabButton" id="tabButton2"><img src="img/icon/list.png" style="width:25px"><br/>일지목록</th>
+				<th class="tabButton" id="tabButton3"><img src="img/icon/camera.png" style="width:25px"><br/>QR코드</th>
+				<th class="tabButton" id="tabButton4"><img src="img/icon/crop.png" style="width:25px"><br/>재배정보</th>
+				<th class="tabButton" id="tabButton5"><img src="img/icon/setting.png" style="width:25px"><br/>환경설정</th>
+			</tr>
+			<tr>
+				<td id="contentsTD" colspan="5">
+
+					<div class="card" id="newDiary2">
+						<span id="date"></span>
+						<button id="add" data-mini="true" data-theme="a">새로운 일지 작성</button>
+						<div id="newDiary" style="display: none;">
+							<form>
+								<select id="selectCrop" data-mini="true">
+									<option>작목을 선택하세요</option>
+								</select>
+								<select id="selectAction" data-mini="true">
+									<option value="0">작업을 선택하세요</option>
+									<option value="1">파종</option>
+									<option value="2">정식</option>
+									<option value="3">첫수확</option>
+								</select>
+								<input id="title" type="text" placeholder="제목을 입력해 주세요(필수)."/>
+								<textarea id="comment" rows="4" placeholder="내용을 입력해 주세요(선택)."></textarea>
+								<img id="img"
+									 style="width:100%;height:200px;border:1px solid #999;background-color: #ddd;display:none;">
+								<button id="btnImg" data-mini="true">사진촬영</button>
+								<fieldset class="ui-grid-a">
+									<div class="ui-block-a" style="padding-right: 5px;">
+										<button id="write" data-mini="true" style="background-color:#efd;">작성 완료
+										</button>
+									</div>
+									<div class="ui-block-b" style="padding-left: 5px;">
+										<button id="cancel" data-mini="true" style="background-color:#fde;">작성 취소
+										</button>
+									</div>
+								</fieldset>
+							</form>
+						</div>
+					</div>
+
+					<div id="diaryList" style="text-align: center;margin-top:20px;">
+
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div data-role="footer" data-position="fixed">
+		<h3>Copyrightⓒ 경기도농업기술원 All rights reserved.</h3>
+	</div>
+</div>
+
+<script id="diaryItem" type="text/x-jquery-tmpl">
+	<div class="card">
+		<div onmousedown="viewDiaryItem(${id});">
+			<div class="title"><span style="color:#000">${cropName}</span> <span style="color:#020">${action}</span> ${title}</div>
+			<div class="comment">${comment}</div>
+		</div>
+
+		<div style="position:absolute; top:0; right:0; padding:5px;">
+			<a onmousedown="deleteDiary(${id})" data-mini="true">삭제</a>
+		</div>
+	</div>
+</script>
+
+<script>
+
+	var urlParams = null;
+
+	function deleteDiary(id) {
+		if (confirm("삭제하시겠습까?")) {
+			FarmDiaryDatabase.getDiaryById(id, function(status, result){
+				var row = result.rows.item(0);
+
+				if( row["notiId"] ){
+					try{
+						window.plugin.notification.local.cancel(row["notiId"], function () {
+
+						});
+					}catch(e){}
+				}
+				if( row["nextDate1NotiId"] ){
+					try{
+						window.plugin.notification.local.cancel(row["nextDate1NotiId"], function () {
+
+						});
+					}catch(e){}
+				}
+				if( row["nextDate2NotiId"] ){
+					try{
+						window.plugin.notification.local.cancel(row["nextDate2NotiId"], function () {
+
+						});
+					}catch(e){}
+				}
+
+				FarmDiaryDatabase.deleteDiary(id, function (status, result) {
+					refresh();
+				});
+
+			});
+		}
+	}
+
+	function viewDiaryItem(id) {
+		document.location.href = "viewDiaryItem.html?" +
+				"back_page=page1-1.html" +
+				"&y=" + urlParams.y +
+				"&m=" + urlParams.m +
+				"&d=" + urlParams.d +
+				"&id=" + id;
+	}
+
+	function getActionString(index){
+		return ["", "파종", "정식", "첫수확"][index];
+	}
+
+	function refresh() {
+
+		var urlParamDate = new Date(urlParams.y, urlParams.m, urlParams.d);
+
+		var $diaryList = $("#diaryList");
+		$diaryList.empty();
+		FarmDiaryDatabase.getDiary(urlParams.y, urlParams.m, urlParams.d, function (status, result) {
+			switch (status) {
+				case "success":
+					if (result.rows.length) {
+						var $diaryItem = $("#diaryItem");
+						for (var i = 0; i < result.rows.length; ++i) {
+							var row = result.rows.item(i);
+
+							var nextDate1 = new Date(); nextDate1.setTime(row["nextDate1"]);
+							var nextDate2 = new Date(); nextDate2.setTime(row["nextDate2"]);
+							var iAction = row["actionIndex"];
+							if( urlParamDate.getTime()==nextDate1.getTime() ){
+								iAction += 1;
+							}else if( urlParamDate.getTime()==nextDate2.getTime() ){
+								iAction += 2;
+							}
+
+							var cropName = null;
+							if( row["cropIndex"]>=0 ){
+								cropName = cropAry[row["cropIndex"]].Name;
+							}
+							var action = null;
+							if( iAction>=0 ){
+								action = getActionString(iAction);
+							}
+
+							var diaryItem = $diaryItem.tmpl({
+								id: row["id"],
+								cropName: cropName,
+								action: action,
+								title: Utils.getReducedString(row["title"], 10),
+								comment: Utils.getReducedString(row["comment"], 10)
+							});
+							if (row["comment"] == "") {
+								$(".comment", diaryItem).hide();
+							}
+
+							$diaryList.append(diaryItem);
+						}
+					} else {
+						$diaryList.text("작성된 일지가 없습니다.");
+					}
+					break;
+				case "error":
+					break;
+			}
+		});
+	}
+
+	function addDiary2(params, callback){
+		var localNotificationId = null;
+
+		var notiId = null;
+		var nextDate1NotiId = null;
+		var nextDate2NotiId = null;
+
+
+		Utils.getIntegerRand();
+
+		if( params.nextDate1 ){
+			nextDate1NotiId = Utils.getIntegerRand();
+		}
+		if( params.nextDate2 ){
+			nextDate2NotiId = Utils.getIntegerRand();
+		}
+
+
+		FarmDiaryDatabase.addDiary(params.date.getFullYear(), params.date.getMonth(), params.date.getDate(), params.iCrop, params.iAction, params.title, params.comment, params.imageData, params.nextDate1, params.nextDate2, notiId, nextDate1NotiId, nextDate2NotiId, function (status, result) {
+			console.log(status, result);
+
+			/*
+			var now = new Date();
+
+			now.setSeconds(now.getSeconds()+5);
+			params.date = new Date(now);
+
+			now.setSeconds(now.getSeconds()+5);
+			params.nextDate1 = new Date(now);
+
+			now.setSeconds(now.getSeconds()+5);
+			params.nextDate2 = new Date(now);
+			*/
+
+			var cropName = "기타작목";
+			if( params.iCrop>=0 ){
+				cropName = cropAry[params.iCrop].Name;
+			}
+
+			function getMessage(iAction){
+				var as = getActionString(iAction);
+				if( as!=="" ){
+					as = " " + as;
+				}
+				return "오늘 영농 작업" + as + "이 있습니다."
+			}
+
+			var newDate = new Date(params.date);
+			newDate.setHours(9);
+			if( Utils.isFutureDate(newDate) ){
+				try{
+					window.plugin.notification.local.add({
+						id: notiId,
+						date: newDate,
+						title: cropName,
+						message: getMessage(params.iAction)
+					}, function(){
+
+					});
+				}catch(e){}
+			}
+
+			var newDate = new Date(params.nextDate1);
+			newDate.setHours(9);
+			if( Utils.isFutureDate(newDate) ){
+				try{
+					window.plugin.notification.local.add({
+						id: nextDate1NotiId,
+						date: newDate,
+						title: cropName,
+						message: getMessage(params.iAction+1)
+					}, function(){
+
+					});
+				}catch(e){}
+			}
+
+			var newDate = new Date(params.nextDate2);
+			newDate.setHours(9);
+			if( Utils.isFutureDate(newDate) ){
+				try{
+					window.plugin.notification.local.add({
+						id: nextDate2NotiId,
+						date: newDate,
+						title: cropName,
+						message: getMessage(params.iAction+2)
+					}, function(){
+
+					});
+				}catch(e){}
+			}
+
+			if( callback ){
+				callback(result.insertId);
+			}
+		});
+
+
+	}
+
+	$(document).on("ready", function () {
+		FarmDiaryDatabase.initialize();
+		var $selectCrop = $("#selectCrop");
+		for (var i = 0; i < cropAry.length; ++i) {
+			var crop = cropAry[i];
+			$selectCrop.append('<option>' + crop.Name + '</option>')
+		}
+
+		$selectCrop.change(function (e) {
+			e.preventDefault();
+			var iCrop = $selectCrop[0].selectedIndex - 1;
+
+			var $selectAction = $("#selectAction");
+			if (iCrop == -1) {
+				$selectAction.val(0);
+				$selectAction.selectmenu('disable');
+			} else {
+				var crop = cropAry[iCrop];
+
+				if (crop.month && crop.day1 && crop.day2) {
+					$selectAction.selectmenu('enable');
+				} else {
+					$selectAction.val(0);
+					$selectAction.selectmenu('disable');
+				}
+			}
+
+			$selectAction.selectmenu().selectmenu('refresh', true);
+		});
+
+		$("#selectAction").selectmenu('disable');
+
+		urlParams = Utils.getURLParams();
+
+		if (urlParams === undefined || urlParams.y === undefined || urlParams.m === undefined || urlParams.d === undefined) {
+			document.location.href = "page1.html";
+		}
+
+		var date = urlParams.y + "년 " + (parseInt(urlParams.m) + 1) + "월 " + urlParams.d + "일";
+		$("#date").text(date);
+
+		refresh();
+
+		$("#write").bind("mousedown", function (e) {
+			e.preventDefault();
+
+			var iCrop = $("#selectCrop")[0].selectedIndex - 1;
+			var iAction = $("#selectAction")[0].selectedIndex;
+
+			var title = $("#title").val();
+			var comment = $("#comment").val();
+
+			if (title === "") {
+				alert("제목은 반드시 입력해야합니다.");
+				return;
+			}
+
+			var imageData = $("#img").attr("src");
+			if (imageData === null || typeof imageData === "undefined") {
+				imageData = "";
+			}
+
+			var diaryParams = {
+				date: new Date(urlParams.y, urlParams.m, urlParams.d),
+				iCrop: iCrop,
+				iAction: iAction,
+				title: title,
+				comment: comment,
+				imageData: imageData,
+				nextDate1: null,
+				nextDate2: null
+			};
+
+			if( iCrop>=0 ){
+				if( iAction==1 ){
+					var newDate = new Date(diaryParams.date);
+
+					newDate.setDate(diaryParams.date.getDate() + crop.day1);
+					diaryParams.nextDate1 = newDate.getTime();
+
+					newDate.setDate(diaryParams.date.getDate() + crop.day2);
+					diaryParams.nextDate2 = newDate.getTime();
+
+					addDiary2(diaryParams, function(insertId){
+						refresh();
+					});
+				}
+				else if( iAction==2 ){
+					var newDate = new Date(diaryParams.date);
+
+					newDate.setDate(diaryParams.date.getDate() + crop.day1);
+					diaryParams.nextDate1 = newDate.getTime();
+
+					addDiary2(diaryParams, function(insertId){
+						refresh();
+					});
+				}
+				else{
+					addDiary2(diaryParams, function(insertId){
+						refresh();
+					});
+				}
+			}
+			else{
+				addDiary2(diaryParams, function(insertId){
+					refresh();
+				});
+			}
+
+			$("#newDiary").hide();
+			$("#add").show();
+		})
+		$("#add").bind("mousedown", function (e) {
+			e.preventDefault();
+			$("#title").val("");
+			$("#comment").val("");
+			$("#newDiary").show();
+			$("#add").hide();
+
+			$("#img").attr("src", "");
+			$("#img").hide();
+
+		});
+		$("#cancel").bind("mousedown", function (e) {
+			if (($("#title").val() === "" && $("#comment").val() === "") || confirm("일지 작성을 취소하시겠습까?")) {
+				e.preventDefault();
+				$("#newDiary").hide();
+				$("#add").show();
+			}
+		});
+	});
+
+	$("#btnImg").click(function (e) {
+		e.preventDefault();
+
+		navigator.camera.getPicture(
+				function (imageData) {
+					$("#img").show();
+					$("#img").attr("src", "data:image/jpeg;base64," + imageData);
+				}, function (message) {
+				}, {
+					quality: 30,
+					destinationType: Camera.DestinationType.DATA_URL
+					//destinationType: Camera.DestinationType.FILE_URI
+				}
+		)
+
+	});
+	$("#tabButton1").click(function (e) {
+		document.location.href = "page1.html";
+	});
+	$("#tabButton2").click(function (e) {
+		document.location.href = "page2.html";
+	});
+	$("#tabButton3").click(function (e) {
+		document.location.href = "page3.html";
+	});
+	$("#tabButton4").click(function (e) {
+		document.location.href = "page4.html";
+	});
+	$("#tabButton5").click(function (e) {
+		document.location.href = "page5.html";
+	});
+
+	function init() {
+		var cordovaScript = document.createElement("script");
+		document.head.appendChild(cordovaScript);
+		cordovaScript.onload = function () {
+
+		}
+		if (navigator.userAgent.indexOf("Android") > 0) {
+			cordovaScript.src = "js/phonegap/android/cordova.js";
+		} else if (navigator.userAgent.indexOf("iPhone") > 0 || navigator.userAgent.indexOf("iPad") > 0 || navigator.userAgent.indexOf("iPod") > 0) {
+			cordovaScript.src = "js/phonegap/android/cordova.js";
+		}
+	}
+
+	init();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1" />
+	<script src="lib/jquery/1.11.1/jquery-1.11.1.min.js"></script>
+	<script src="lib/jquery/mobile/1.4.5/js/jquery.mobile-1.4.5.min.js"></script>
+
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jhpark.min.css" />
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jquery.mobile.icons.min.css" />
+	<link rel="stylesheet" href="lib/jquery/mobile/1.4.5/css/jquery.mobile.structure-1.4.5.min.css"/>
+	<title>FarmDiary</title>
+	<link rel="stylesheet" href="css/default.css">
+</head>
+<body>
+<div data-role="page" data-theme="c">
+	<table id="mainTable">
+		<tr>
+			<td colspan="5" class="logoTD">
+				<img src="img/logo.png" class="logoImg">
+			</td>
+		</tr>
+		<tr>
+			<th class="tabButton" id="tabButton1"><img src="img/icon/calendar.png" style="width:25px"><br/>영농달력</th>
+			<th class="tabButton" id="tabButton2"><img src="img/icon/list.png" style="width:25px"><br/>일지목록</th>
+			<th class="tabButton highlight" id="tabButton3"><img src="img/icon/camera.png" style="width:25px"><br/>QR코드</th>
+			<th class="tabButton" id="tabButton4"><img src="img/icon/crop.png" style="width:25px"><br/>재배정보</th>
+			<th class="tabButton" id="tabButton5"><img src="img/icon/setting.png" style="width:25px"><br/>환경설정</th>
+		</tr>
+		<tr>
+			<td id="contentsTD" colspan="5">
+
+				<div style="padding:10px;text-align: center;vertical-align: middle;">
+					<p>
+						<img src="./img/qr.png" style="width:200px;opacity: 0.6">
+					</p>
+					<p>
+						주간/월간 농사 정보 QR 코드를 인식합니다.
+					</p>
+					<p>
+						<button id="btnQR" data-mini="true">QR 코드 읽기 시작</button>
+					</p>
+				</div>
+
+			</td>
+		</tr>
+	</table>
+
+	<div data-role="footer" data-position="fixed">
+		<h3>Copyrightⓒ 경기도농업기술원 All rights reserved.</h3>
+	</div>
+</div>
+<script>
+
+	document.addEventListener('deviceready', function(){
+		$("#btnQR").click(function(){
+			var scanner = cordova.require("cordova/plugin/BarcodeScanner");
+			scanner.scan(
+					function (result) {
+						/*
+						alert("We got a barcode\n" +
+								"Result: " + result.text + "\n" +
+								"Format: " + result.format + "\n" +
+								"Cancelled: " + result.cancelled);
+						*/
+						if( result.text!==null && result.text!=="" ){
+							var url = result.text;//"http://goo.gl/LMplzU";
+							$.ajax({
+								type: "get",
+								url:"https://www.googleapis.com/urlshortener/v1/url",
+								data: {
+									shortUrl: url
+								},
+								success: function(args){
+									if( args.longUrl.indexOf("http://nongup.gg.go.kr//%EC%9E%90%EB%A3%8C%EC%8B%A4/%EB%86%8D%EC%97%85%EC%A0%95%EB%B3%B4/%EB%86%8D%EC%97%85%EA%B8%B0%EC%88%A0%EC%A0%95%EB%B3%B4/%EB%86%8D%EC%82%AC%EC%A0%95%EB%B3%B4/")==0 ){
+										//window.open(url, "_system");
+										navigator.app.loadUrl(url, {openExternal : true});
+									}else{
+										alert("주간/월간 농사 정보 QR코드가 아닙니다.")
+									}
+								}
+							});
+						}
+					},
+					function (error) {
+						alert("Scanning failed: " + error);
+					}
+			);
+		});
+
+
+
+	}, false);
+
+	$("#tabButton1").click(function(e){
+		document.location.href = "page1.html";
+	});
+	$("#tabButton2").click(function(e){
+		document.location.href = "page2.html";
+	});
+	$("#tabButton3").click(function(e){
+		document.location.href = "page3.html";
+	});
+	$("#tabButton4").click(function(e){
+		document.location.href = "page4.html";
+	});
+	$("#tabButton5").click(function(e){
+		document.location.href = "page5.html";
+	});
+
+
+	function init() {
+		var cordovaScript = document.createElement("script");
+		document.head.appendChild(cordovaScript);
+		cordovaScript.onload = function(){
+
+		}
+		if( navigator.userAgent.indexOf("Android")>0 ){
+			cordovaScript.src = "js/phonegap/android/cordova.js";
+		}else if( navigator.userAgent.indexOf("iPhone") > 0 || navigator.userAgent.indexOf("iPad") > 0 || navigator.userAgent.indexOf("iPod") > 0 ){
+			cordovaScript.src = "js/phonegap/android/cordova.js";
+		}
+	}
+
+	init();
+</script>
+</body>
+</html>
